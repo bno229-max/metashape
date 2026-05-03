@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaShape - Precisão Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --premium-dark: #1a1a1a;
+            --premium-gold: #c5a059;
+            --premium-green: #2ecc71;
+            --premium-red: #e74c3c;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-white: #ffffff;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 420px; background: var(--card-white); padding: 25px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        header h2 { margin: 0; font-weight: 800; color: var(--premium-dark); background: linear-gradient(45deg, var(--premium-dark), var(--premium-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Correção Alinhamento Gráfico de Tempo */
+        .time-monitor { 
+            position: relative; 
+            width: 160px; height: 160px; 
+            margin: 0 auto 15px auto; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .time-label { 
+            position: absolute; 
+            z-index: 2;
+            text-align: center; 
+            width: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .time-label span { font-size: 1.8rem; font-weight: 900; color: var(--premium-gold); display: block; line-height: 1; }
+        .time-label small { font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold; }
+
+        .evolution-banner { background: rgba(197, 160, 89, 0.05); border-radius: 20px; padding: 12px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(197, 160, 89, 0.1); }
+        .evolution-banner p { margin: 0; font-weight: 700; color: var(--premium-dark); font-size: 0.95rem; }
+
+        .charts-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .chart-box { 
+            position: relative; width: calc(50% - 5px); height: 140px; background: #fff; border-radius: 20px; 
+            display: flex; justify-content: center; align-items: center; border: 1px solid #f0f0f0; 
+            box-sizing: border-box; cursor: pointer; transition: all 0.3s ease;
+        }
+        .chart-box:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); border-color: var(--premium-gold); }
+        
+        .chart-label { 
+            position: absolute; 
+            text-align: center; 
+            width: 100%; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; 
+        }
+        .chart-label span { font-size: 1.1rem; font-weight: 800; color: var(--premium-dark); display: block; line-height: 1; }
+        .chart-label small { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-top: 2px; display: block; }
+
+        .section-title { font-size: 0.7rem; font-weight: 700; color: #888; margin: 15px 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+        input, select { padding: 14px; border: 1px solid #eee; border-radius: 15px; font-size: 14px; outline: none; background: #f9f9f9; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .btn-action { 
+            width: 100%; padding: 16px; background: var(--premium-green); color: white; border: none; 
+            border-radius: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; 
+            text-transform: uppercase; box-shadow: 0 8px 15px rgba(46, 204, 113, 0.2); 
+        }
+        .btn-action:hover { background: #27ae60; transform: translateY(-2px); }
+
+        #settingsModal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; border-radius: 40px; z-index: 100; padding: 25px; box-sizing: border-box; }
+        
+        .toggle-group { display: flex; background: #f0f0f0; border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .toggle-btn { flex: 1; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; background: none; color: #888; }
+        .toggle-btn.active-ganhar { background: var(--premium-green); color: white; }
+        .toggle-btn.active-perder { background: var(--premium-red); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h2>MetaShape</h2>
+        <button onclick="toggleSettings()" style="background:none; border:none; font-size:22px; cursor:pointer;">⚡</button>
+    </header>
+
+    <div class="time-monitor">
+        <canvas id="timeChart"></canvas>
+        <div class="time-label">
+            <span id="daysVal">0</span>
+            <small>Dias Restantes</small>
+        </div>
+    </div>
+
+    <div class="evolution-banner">
+        <p id="evolucaoTexto">Defina sua meta no ícone de energia</p>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-box"><canvas id="kcalChart"></canvas><div class="chart-label"><span id="val-kcal">0</span><small>kcal falta</small></div></div>
+        <div class="chart-box"><canvas id="protChart"></canvas><div class="chart-label"><span id="val-prot">0</span><small>Prot (g)</small></div></div>
+        <div class="chart-box"><canvas id="carbChart"></canvas><div class="chart-label"><span id="val-carb">0</span><small>Carbo (g)</small></div></div>
+        <div class="chart-box"><canvas id="fibraChart"></canvas><div class="chart-label"><span id="val-fibra">0</span><small>Fibra (g)</small></div></div>
+    </div>
+
+    <div class="section-title">Lançar Nutrição</div>
+    <input list="alimentos" id="fName" placeholder="Selecione o alimento...">
+    <datalist id="alimentos"></datalist>
+    <div style="display: flex; gap: 8px;">
+        <input type="number" id="fQty" style="flex:2" placeholder="Qtd">
+        <select id="fUnit" style="flex:1"><option value="g">g</option><option value="kg">kg</option><option value="unid">unid</option><option value="ml">ml</option></select>
+    </div>
+    <button class="btn-action" onclick="salvarAlimentacao()">Salvar Alimentação</button>
+
+    <div class="section-title">Check-in de Peso</div>
+    <div style="display: flex; gap: 8px;">
+        <input type="number" id="pesoInput" style="flex:2" placeholder="Peso atual (kg)">
+        <button class="btn-action" style="flex:1" onclick="registrarPeso()">Registrar</button>
+    </div>
+
+    <div id="settingsModal">
+        <h3>Crie sua Meta</h3>
+        <div class="toggle-group">
+            <button id="btnGanha" class="toggle-btn active-ganhar" onclick="setObjetivo('ganhar')">Ganhar Peso</button>
+            <button id="btnPerde" class="toggle-btn" onclick="setObjetivo('perder')">Perder Peso</button>
+        </div>
+        <label><small>Data Início / Fim</small></label>
+        <div style="display: flex; gap: 8px;"><input type="date" id="mStart"><input type="date" id="mEnd"></div>
+        <label><small>Peso Inicial / Peso Alvo (kg)</small></label>
+        <div style="display: flex; gap: 8px;"><input type="number" id="pIni" value="69"><input type="number" id="pAlvo" value="80"></div>
+        <label><small>Sua Altura (cm)</small></label>
+        <input type="number" id="pAltura" value="185">
+        <button class="btn-action" onclick="toggleSettings()" style="margin-top:15px">Aplicar Mudanças</button>
+    </div>
+</div>
+
+<script>
+    const db = {
+        "água mineral": { kcal: 0, prot: 0, carb: 0, fibra: 0 }, "água de coco": { kcal: 19, prot: 0.7, carb: 3.7, fibra: 1.1 }, "whey protein": { kcal: 120, prot: 24, carb: 3, fibra: 0 }, "creatina": { kcal: 0, prot: 0, carb: 0, fibra: 0 }, "pré-treino": { kcal: 5, prot: 0, carb: 1, fibra: 0 }, "bcaa": { kcal: 0, prot: 0, carb: 0, fibra: 0 }, "glutamina": { kcal: 0, prot: 0, carb: 0, fibra: 0 }, "isotônicos": { kcal: 24, prot: 0, carb: 6, fibra: 0 }, "maltodextrina": { kcal: 380, prot: 0, carb: 95, fibra: 0 }, "hipercalórico": { kcal: 450, prot: 30, carb: 80, fibra: 2 }, "café preto": { kcal: 2, prot: 0.1, carb: 0, fibra: 0 }, "chá verde": { kcal: 1, prot: 0, carb: 0, fibra: 0 }, "leite desnatado": { kcal: 35, prot: 3.4, carb: 5, fibra: 0 }, "bebida de amêndoas": { kcal: 15, prot: 0.5, carb: 1, fibra: 0.5 }, "suco de uva integral": { kcal: 60, prot: 0.5, carb: 15, fibra: 0.2 }, "peito de frango": { kcal: 165, prot: 31, carb: 0, fibra: 0 }, "ovo inteiro": { kcal: 77, prot: 6, carb: 0.6, fibra: 0 }, "clara de ovo": { kcal: 52, prot: 11, carb: 0.7, fibra: 0 }, "patinho (carne bovina)": { kcal: 219, prot: 35.9, carb: 0, fibra: 0 }, "tilápia / peixe branco": { kcal: 96, prot: 20, carb: 0, fibra: 0 }, "atum em conserva": { kcal: 116, prot: 26, carb: 0, fibra: 0 }, "salmão": { kcal: 208, prot: 20, carb: 0, fibra: 0 }, "iogurte grego": { kcal: 100, prot: 10, carb: 4, fibra: 0 }, "queijo cottage": { kcal: 98, prot: 11, carb: 3.4, fibra: 0 }, "queijo minas frescal": { kcal: 264, prot: 17, carb: 3, fibra: 0 }, "tofu": { kcal: 76, prot: 8, carb: 1.9, fibra: 0.3 }, "batata doce": { kcal: 86, prot: 1.6, carb: 20, fibra: 3 }, "aveia em flocos": { kcal: 389, prot: 16.9, carb: 66, fibra: 10.6 }, "arroz branco": { kcal: 130, prot: 2.7, carb: 28, fibra: 0.4 }, "arroz integral": { kcal: 110, prot: 2.6, carb: 23, fibra: 1.8 }, "macarrão integral": { kcal: 124, prot: 5.3, carb: 26, fibra: 2.8 }, "tapioca": { kcal: 130, prot: 0.1, carb: 32, fibra: 0.2 }, "mandioca / aipim": { kcal: 160, prot: 1.3, carb: 38, fibra: 1.8 }, "banana": { kcal: 89, prot: 1.1, carb: 23, fibra: 2.6 }, "maçã": { kcal: 52, prot: 0.3, carb: 14, fibra: 2.4 }, "melancia": { kcal: 30, prot: 0.6, carb: 7.6, fibra: 0.4 }, "açaí (puro)": { kcal: 70, prot: 1, carb: 4, fibra: 2.5 }, "quinoa": { kcal: 120, prot: 4.4, carb: 21, fibra: 2.8 }, "grão-de-bico": { kcal: 164, prot: 8.9, carb: 27, fibra: 7.6 }, "lentilha": { kcal: 116, prot: 9, carb: 20, fibra: 7.9 }, "feijão": { kcal: 76, prot: 5, carb: 14, fibra: 5 }, "pasta de amendoim": { kcal: 588, prot: 25, carb: 20, fibra: 8 }, "abacate": { kcal: 160, prot: 2, carb: 8.5, fibra: 6.7 }, "azeite de oliva": { kcal: 884, prot: 0, carb: 0, fibra: 0 }, "castanha-de-caju": { kcal: 553, prot: 18, carb: 30, fibra: 3.3 }, "castanha-do-pará": { kcal: 656, prot: 14, carb: 12, fibra: 7.5 }, "nozes": { kcal: 654, prot: 15, carb: 14, fibra: 6.7 }, "barra de proteína": { kcal: 200, prot: 20, carb: 15, fibra: 5 }, "chocolate amargo 70%": { kcal: 598, prot: 7.8, carb: 45, fibra: 11 }, "sementes de chia": { kcal: 486, prot: 17, carb: 42, fibra: 34 }
+    };
+
+    const list = document.getElementById('alimentos');
+    Object.keys(db).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        list.appendChild(opt);
+    });
+
+    let config = { ini: 69, alvo: 80, altura: 185, atual: 69, obj: 'ganhar', start: new Date().toISOString().split('T')[0], end: '2026-06-01' };
+    let metas = { kcal: 2800, prot: 180, carb: 300, fibra: 35 };
+    let consumido = { kcal: 0, prot: 0, carb: 0, fibra: 0 };
+
+    function initChart(id, color) {
+        return new Chart(document.getElementById(id), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [0, 100], backgroundColor: [color, '#f5f5f5'], borderWidth: 0, cutout: '82%' }] },
+            options: { plugins: { legend: false }, maintainAspectRatio: false, layout: { padding: 0 } }
+        });
+    }
+
+    const charts = {
+        kcal: initChart('kcalChart', '#2ecc71'),
+        prot: initChart('protChart', '#f39c12'),
+        carb: initChart('carbChart', '#3498db'),
+        fibra: initChart('fibraChart', '#9b59b6'),
+        time: initChart('timeChart', '#c5a059')
+    };
+
+    function setObjetivo(o) {
+        config.obj = o;
+        document.getElementById('btnGanha').className = o === 'ganhar' ? 'toggle-btn active-ganhar' : 'toggle-btn';
+        document.getElementById('btnPerde').className = o === 'perder' ? 'toggle-btn active-perder' : 'toggle-btn';
+    }
+
+    function toggleSettings() {
+        const m = document.getElementById('settingsModal');
+        if(m.style.display === 'block') {
+            config.ini = parseFloat(document.getElementById('pIni').value);
+            config.alvo = parseFloat(document.getElementById('pAlvo').value);
+            config.altura = parseFloat(document.getElementById('pAltura').value);
+            config.start = document.getElementById('mStart').value;
+            config.end = document.getElementById('mEnd').value;
+            m.style.display = 'none';
+            calcularNecessidades();
+            atualizarGraficos();
+        } else {
+            m.style.display = 'block';
+        }
+    }
+
+    function calcularNecessidades() {
+        const tmb = 66 + (13.7 * config.atual) + (5 * config.altura) - (6.8 * 41);
+        const superavit = (config.obj === 'ganhar') ? 500 : -500;
+        metas.kcal = Math.round((tmb * 1.5) + superavit);
+        metas.prot = Math.round(config.atual * 2.2);
+        metas.fibra = 35;
+        metas.carb = Math.round((metas.kcal - (metas.prot * 4) - (65 * 9)) / 4);
+    }
+
+    function salvarAlimentacao() {
+        const nome = document.getElementById('fName').value.toLowerCase();
+        let qtd = parseFloat(document.getElementById('fQty').value);
+        const uni = document.getElementById('fUnit').value;
+
+        if(!db[nome] || !qtd) return alert("Selecione o alimento!");
+
+        const fator = uni==='kg' ? qtd*10 : uni==='g' ? qtd/100 : qtd;
+        
+        // CORREÇÃO: Puxando as propriedades corretas do DB
+        const alimento = db[nome];
+        consumido.kcal += alimento.kcal * fator;
+        consumido.prot += alimento.prot * fator;
+        consumido.carb += alimento.carb * fator;
+        consumido.fibra += alimento.fibra * fator;
+
+        if(consumido.kcal >= metas.kcal) confetti();
+        
+        document.getElementById('fName').value = "";
+        document.getElementById('fQty').value = "";
+        atualizarGraficos();
+    }
+
+    function registrarPeso() {
+        const p = parseFloat(document.getElementById('pesoInput').value);
+        if(!p) return;
+        config.atual = p;
+        document.getElementById('pesoInput').value = "";
+        calcularNecessidades();
+        atualizarGraficos();
+    }
+
+    function atualizarGraficos() {
+        const hoje = new Date();
+        const fim = new Date(config.end);
+        const inicio = new Date(config.start);
+        const total = Math.max(1, (fim - inicio) / 86400000);
+        const resta = Math.ceil(Math.max(0, (fim - hoje) / 86400000));
+        
+        document.getElementById('daysVal').innerText = resta;
+        charts.time.data.datasets[0].data = [total - resta, resta];
+        charts.time.update();
+
+        const chKeys = ['kcal', 'prot', 'carb', 'fibra'];
+        chKeys.forEach(k => {
+            const falta = Math.max(0, metas[k] - consumido[k]);
+            document.getElementById(`val-${k}`).innerText = Math.round(falta);
+            charts[k].data.datasets[0].data = [consumido[k], metas[k]];
+            charts[k].update();
+        });
+
+        const diff = Math.abs(config.alvo - config.atual).toFixed(1);
+        const status = config.obj === 'ganhar' ? 'ganhar' : 'perder';
+        document.getElementById('evolucaoTexto').innerHTML = `Meta: ${config.alvo}kg | Resta ${status}: <b>${diff}kg</b>`;
+    }
+
+    calcularNecessidades();
+    atualizarGraficos();
+</script>
+</body>
+</html>

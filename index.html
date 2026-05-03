@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetaShape - Alinhamento Blindado</title>
+    <title>MetaShape Premium</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -20,60 +20,24 @@
         .app-container { width: 100%; max-width: 420px; background: var(--card-white); padding: 25px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        header h2 { margin: 0; font-weight: 800; color: var(--premium-dark); background: linear-gradient(45deg, var(--premium-dark), var(--premium-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header h2 { margin: 0; font-weight: 800; color: var(--premium-dark); }
+        .app-title-gold { background: linear-gradient(45deg, var(--premium-dark), var(--premium-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* Gráfico de Tempo */
         .time-monitor { position: relative; width: 160px; height: 160px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.3s; }
-        .time-monitor:hover { transform: scale(1.05); }
         .time-label { position: absolute; z-index: 2; text-align: center; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
         .time-label span { font-size: 1.8rem; font-weight: 900; color: var(--premium-gold); display: block; line-height: 1; }
         .time-label small { font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold; }
 
-        .evolution-banner { background: rgba(197, 160, 89, 0.05); border-radius: 15px; padding: 12px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(197, 160, 89, 0.1); }
+        .evolution-banner { background: rgba(197, 160, 89, 0.05); border-radius: 20px; padding: 12px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(197, 160, 89, 0.1); }
         .evolution-banner p { margin: 0; font-weight: 700; color: var(--premium-dark); font-size: 0.95rem; }
 
-        /* GRADE BLINDADA - 2x2 RIGIDO */
-        .charts-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin-bottom: 25px; 
-        }
-
-        .chart-box { 
-            position: relative; 
-            aspect-ratio: 1 / 1; /* Garante que o box seja sempre quadrado */
-            background: #fff; 
-            border-radius: 25px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            border: 1px solid #f0f0f0; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        .chart-box:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
-            border-color: var(--premium-gold); 
-        }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .chart-box { position: relative; aspect-ratio: 1/1; background: #fff; border-radius: 25px; display: flex; justify-content: center; align-items: center; border: 1px solid #f0f0f0; cursor: pointer; transition: all 0.3s ease; padding: 10px; box-sizing: border-box; }
+        .chart-box:hover { transform: translateY(-5px); border-color: var(--premium-gold); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         
-        .chart-label { 
-            position: absolute; 
-            text-align: center; 
-            width: 100%; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            pointer-events: none; 
-            z-index: 5;
-        }
+        .chart-label { position: absolute; text-align: center; width: 100%; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 5; }
         .chart-label span { font-size: 1.1rem; font-weight: 800; color: var(--premium-dark); display: block; line-height: 1; }
         .chart-label small { font-size: 0.55rem; color: #aaa; text-transform: uppercase; margin-top: 2px; display: block; }
-
         canvas { width: 100% !important; height: 100% !important; }
 
         .section-title { font-size: 0.75rem; font-weight: 700; color: #888; margin: 15px 0 10px; text-transform: uppercase; }
@@ -90,14 +54,15 @@
         .toggle-btn.active-ganhar { background: var(--premium-green); color: white; }
         .toggle-btn.active-perder { background: var(--premium-red); color: white; }
 
-        .insight-card { background: #f9f9f9; padding: 20px; border-radius: 20px; margin-top: 20px; border-left: 5px solid var(--premium-gold); }
+        .insight-card { background: #f9f9f9; padding: 20px; border-radius: 20px; margin-top: 15px; border-left: 5px solid var(--premium-gold); }
+        .tip-list { font-size: 0.85rem; color: #555; margin-top: 10px; padding-left: 15px; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <header>
-        <h2>MetaShape</h2>
+        <h2 id="mainHeader"><span class="app-title-gold">MetaShape</span></h2>
         <button onclick="openModal('settingsModal')" style="background:none; border:none; font-size:24px; cursor:pointer;">⚡</button>
     </header>
 
@@ -106,7 +71,7 @@
         <div class="time-label"><span id="daysVal">0</span><small>Dias Restantes</small></div>
     </div>
 
-    <div class="evolution-banner"><p id="evolucaoTexto">Carregando jornada...</p></div>
+    <div class="evolution-banner"><p id="evolucaoTexto">Defina sua meta no ícone de energia</p></div>
 
     <div class="charts-grid">
         <div class="chart-box" onclick="showInsight('kcal')"><canvas id="kcalChart"></canvas><div class="chart-label"><span id="val-kcal">0</span><small>kcal falta</small></div></div>
@@ -124,15 +89,19 @@
     </div>
     <button class="btn-action" onclick="salvarAlimentacao()">Salvar Alimentação</button>
 
-    <div class="section-title">Peso de Hoje</div>
+    <div class="section-title">Check-in de Peso</div>
     <div style="display: flex; gap: 8px;">
         <input type="number" id="pesoInput" style="flex:2" placeholder="Peso atual (kg)">
         <button class="btn-action" style="flex:1" onclick="registrarPeso()">Registrar</button>
     </div>
 
+    <!-- Modal Configurações -->
     <div id="settingsModal" class="modal">
         <span class="close-modal" onclick="closeModal('settingsModal')">×</span>
         <h3>Crie sua Meta</h3>
+        <label><small>Nome ou Objetivo</small></label>
+        <input type="text" id="userName" placeholder="Ex: Fabiano ou Projeto Verão" style="margin-bottom:15px">
+
         <div class="toggle-group">
             <button id="btnGanha" class="toggle-btn" onclick="setObjetivo('ganhar')">Ganhar Peso</button>
             <button id="btnPerde" class="toggle-btn" onclick="setObjetivo('perder')">Perder Peso</button>
@@ -145,10 +114,13 @@
             <div style="flex:1"><small>Peso Inicial (kg)</small><input type="number" id="pIni"></div>
             <div style="flex:1"><small>Peso Alvo (kg)</small><input type="number" id="pAlvo"></div>
         </div>
-        <label><small>Sua Altura (cm)</small></label><input type="number" id="pAltura">
+        <label><small>Altura (cm)</small></label><input type="number" id="pAltura">
+        
         <button class="btn-action" onclick="saveSettings()">Aplicar Meta</button>
+        <button class="btn-action" onclick="resetMeta()" style="background: var(--premium-red); margin-top: 10px;">Reiniciar Meta</button>
     </div>
 
+    <!-- Modal Insights -->
     <div id="insightModal" class="modal">
         <span class="close-modal" onclick="closeModal('insightModal')">×</span>
         <div id="insightContent" style="margin-top:20px"></div>
@@ -167,9 +139,10 @@
         datalist.appendChild(opt);
     });
 
-    let state = JSON.parse(localStorage.getItem('metashape_vFINAL_2')) || {
-        ini: 69, alvo: 80, altura: 185, atual: 69, obj: 'ganhar',
-        start: '2026-05-01', end: '2026-07-01',
+    let state = JSON.parse(localStorage.getItem('metashape_vFINAL_3')) || {
+        name: "", ini: 69, alvo: 80, altura: 185, atual: 69, obj: 'ganhar',
+        start: new Date().toISOString().split('T')[0], 
+        end: new Date(Date.now() + 60*24*60*60*1000).toISOString().split('T')[0],
         consumido: { kcal: 0, prot: 0, carb: 0, fibra: 0 }
     };
 
@@ -177,24 +150,15 @@
         return new Chart(document.getElementById(id), {
             type: 'doughnut',
             data: { datasets: [{ data: [0, 100], backgroundColor: [color, '#f5f5f5'], borderWidth: 0, cutout: '82%' }] },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, // Trava o gráfico no container
-                plugins: { legend: false } 
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: false } }
         });
     }
 
-    const charts = {
-        kcal: initChart('kcalChart', '#2ecc71'),
-        prot: initChart('protChart', '#f39c12'),
-        carb: initChart('carbChart', '#3498db'),
-        fibra: initChart('fibraChart', '#9b59b6'),
-        time: initChart('timeChart', '#c5a059')
-    };
+    const charts = { kcal: initChart('kcalChart', '#2ecc71'), prot: initChart('protChart', '#f39c12'), carb: initChart('carbChart', '#3498db'), fibra: initChart('fibraChart', '#9b59b6'), time: initChart('timeChart', '#c5a059') };
 
     function openModal(id) { 
         if(id === 'settingsModal') {
+            document.getElementById('userName').value = state.name;
             document.getElementById('mStart').value = state.start;
             document.getElementById('mEnd').value = state.end;
             document.getElementById('pIni').value = state.ini;
@@ -213,31 +177,42 @@
     }
 
     function saveSettings() {
+        state.name = document.getElementById('userName').value;
         state.start = document.getElementById('mStart').value;
         state.end = document.getElementById('mEnd').value;
         state.ini = parseFloat(document.getElementById('pIni').value);
         state.alvo = parseFloat(document.getElementById('pAlvo').value);
         state.altura = parseFloat(document.getElementById('pAltura').value);
-        localStorage.setItem('metashape_vFINAL_2', JSON.stringify(state));
+        localStorage.setItem('metashape_vFINAL_3', JSON.stringify(state));
         closeModal('settingsModal');
         atualizarGraficos();
+    }
+
+    function resetMeta() {
+        if(confirm("Deseja zerar toda a sua meta e alimentos consumidos?")) {
+            localStorage.removeItem('metashape_vFINAL_3');
+            location.reload();
+        }
     }
 
     function showInsight(type) {
         const metas = calcularMetasAtuais();
         const info = {
-            kcal: { t: "Energia (Kcal)", v: state.consumido.kcal, m: metas.kcal, u: "kcal" },
-            prot: { t: "Proteínas (g)", v: state.consumido.prot, m: metas.prot, u: "g" },
-            carb: { t: "Carbos (g)", v: state.consumido.carb, m: metas.carb, u: "g" },
-            fibra: { t: "Fibras (g)", v: state.consumido.fibra, m: metas.fibra, u: "g" },
-            time: { t: "Jornada", v: 0, m: 100, u: "" }
+            kcal: { t: "Energia", v: state.consumido.kcal, m: metas.kcal, u: "kcal", tips: ["Banana", "Pasta de Amendoim", "Hipercalórico", "Arroz"] },
+            prot: { t: "Proteínas", v: state.consumido.prot, m: metas.prot, u: "g", tips: ["Peito de Frango", "Ovo Inteiro", "Whey Protein", "Patinho"] },
+            carb: { t: "Carboidratos", v: state.consumido.carb, m: metas.carb, u: "g", tips: ["Batata Doce", "Aveia", "Tapioca", "Macarrão Integral"] },
+            fibra: { t: "Fibras", v: state.consumido.fibra, m: metas.fibra, u: "g", tips: ["Aveia em Flocos", "Maçã", "Feijão", "Sementes de Chia"] },
+            time: { t: "Foco no Tempo", v: 0, m: 100, u: "", tips: ["Prepare suas refeições com antecedência.", "Mantenha o sono regular.", "Beba pelo menos 2L de água."] }
         };
         const item = info[type];
         document.getElementById('insightContent').innerHTML = `
             <h2>${item.t}</h2>
             <div class="insight-card">
                 <p>Status: <b>${Math.round(item.v)}${item.u}</b> / ${Math.round(item.m)}${item.u}</p>
-                <p>Conclusão: <b>${item.m > 0 ? Math.round((item.v/item.m)*100) : 0}%</b></p>
+                <p>Progresso: <b>${item.m > 0 ? Math.round((item.v/item.m)*100) : 0}%</b></p>
+                <hr style="border:0; border-top:1px solid #ddd; margin:15px 0;">
+                <p><b>Dicas para bater a meta:</b></p>
+                <ul class="tip-list">${item.tips.map(t => `<li>${t}</li>`).join('')}</ul>
             </div>`;
         openModal('insightModal');
     }
@@ -264,7 +239,12 @@
             charts[k].update();
         });
         const diff = Math.abs(state.alvo - state.atual).toFixed(1);
-        document.getElementById('evolucaoTexto').innerHTML = `Meta: ${state.alvo}kg | Resta ${state.obj}: <b>${diff}kg</b>`;
+        const status = state.obj === 'ganhar' ? 'ganhar' : 'perder';
+        document.getElementById('evolucaoTexto').innerHTML = `Meta: ${state.alvo}kg | Resta ${status}: <b>${diff}kg</b>`;
+        
+        // Atualizar Nome no Header
+        const headerText = state.name ? `MetaShape - <span class="app-title-gold">${state.name}</span>` : `<span class="app-title-gold">MetaShape</span>`;
+        document.getElementById('mainHeader').innerHTML = headerText;
     }
 
     function salvarAlimentacao() {
@@ -279,17 +259,15 @@
         state.consumido.carb += db[nome].carb * fator;
         state.consumido.fibra += db[nome].fibra * fator;
 
-        localStorage.setItem('metashape_vFINAL_2', JSON.stringify(state));
+        localStorage.setItem('metashape_vFINAL_3', JSON.stringify(state));
         document.getElementById('fName').value = ""; document.getElementById('fQty').value = "";
         atualizarGraficos();
         if(state.consumido.kcal >= calcularMetasAtuais().kcal) confetti();
     }
 
     function registrarPeso() {
-        const p = parseFloat(document.getElementById('pesoInput').value);
-        if(!p) return;
-        state.atual = p;
-        localStorage.setItem('metashape_vFINAL_2', JSON.stringify(state));
+        state.atual = parseFloat(document.getElementById('pesoInput').value);
+        localStorage.setItem('metashape_vFINAL_3', JSON.stringify(state));
         document.getElementById('pesoInput').value = "";
         atualizarGraficos();
     }
